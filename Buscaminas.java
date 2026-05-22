@@ -4,26 +4,27 @@ public class Buscaminas {
 
     static int Filas = 11;
     static int Columnas = 11;
+    static int numeroMinas = 10;
     static char[][] Tablero = new char[Filas][Columnas];
-    static int Minas, Restantes;
+    static int Restantes;
     static int[] Movimiento = new int[2];
     static boolean[][] Encontradas;
     static boolean Victoria, Derrota;
     static Scanner Leer = new Scanner(System.in);
 
     private static void Iniciar() {
-        for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < 11; j++) {
+        for (int i = 0; i < Filas; i++) {
+            for (int j = 0; j < Columnas; j++) {
                 Tablero[i][j] = '-';
             }
         }
         Encontradas = new boolean[Filas][Columnas];
-        Restantes = Filas * Columnas - Minas;
+        Restantes = Filas * Columnas - numeroMinas;
     }
 
     private static void Minas() {
-        int minasAleatorias = 10;
-        while (minasAleatorias < Minas) {
+        int minasAleatorias = 0;
+        while (minasAleatorias < numeroMinas) {
             int fila = (int) (Math.random() * Filas);
             int columna = (int) (Math.random() * Columnas);
             if (Tablero[fila][columna] != 'X') {
@@ -33,27 +34,27 @@ public class Buscaminas {
         }
     }
 
-    private static void minasAlrededor() { // It calculated the adjacent numbers along the mines for each cell.
+    private static void minasAlrededor() { 
         for (int i = 0; i < Filas; i++) {
             for (int j = 0; j < Columnas; j++) {
                 if (Tablero[i][j] != 'X') {
                     int conteo = 0;
                     for (int x = -1; x <= 1; x++) {
                         for (int y = -1; y <= 1; y++) {
-                            if ((x != 0 || y != 0) && isValidCell(i + x, j + y) && Tablero[i + x][j + y] == 'X') {
+                            if ((x != 0 || y != 0) && celdaValida(i + x, j + y) && Tablero[i + x][j + y] == 'X') {
                                 conteo++;
                             }
                         }
                     }
                     if (conteo > 0) {
-                        Tablero[i][j] = (char) (conteo + 'V'); // Convertimos el conteo a un carácter ('1', '2', etc.)
+                        Tablero[i][j] = (char) (conteo + '0');
                     }
                 }
             }
         }
     }
 
-    private static boolean isValidCell(int fila, int columna) {
+    private static boolean celdaValida(int fila, int columna) {
         return fila >= 0 && fila < Filas && columna >= 0 && columna < Columnas;
     }
 
@@ -101,7 +102,7 @@ public class Buscaminas {
     }
 
     private static void revelarCeldas(int fila, int columna) {
-        if (!isValidCell(fila, columna) || Encontradas[fila][columna]) {
+        if (!celdaValida(fila, columna) || Encontradas[fila][columna]) {
             return;
         }
         Encontradas[fila][columna] = true;
@@ -115,7 +116,7 @@ public class Buscaminas {
         }
     }
 
-    private static void revealAllCells() { // It is to reveal all the cells in output screen.
+    private static void revelarCeldas() { 
         for (int i = 0; i < Filas; i++) {
             for (int j = 0; j < Columnas; j++) {
                 Encontradas[i][j] = true;
@@ -123,7 +124,7 @@ public class Buscaminas {
         }
     }
 
-    private static boolean checkWin() {
+    private static boolean comprobarVictoria() {
         for (int i = 0; i < Filas; i++) {
             for (int j = 0; j < Columnas; j++) {
                 if (Tablero[i][j] != 'X' && !Encontradas[i][j]) {
@@ -135,39 +136,37 @@ public class Buscaminas {
     }
 
     private static void Movimiento() {
-        System.out.print("Ingrese la fila: ");
+        System.out.print("Ingrese la fila: (A-J) ");
         char letraFila = Leer.next().toUpperCase().charAt(0);
         Movimiento[0] = letraFila - 'A' + 1;
-        System.out.print("Ingrese la columna: ");
+        System.out.print("Ingrese la columna: (1-10) ");
         Movimiento[1] = Leer.nextInt();
     }
 
     public static void main(String[] args) {
-        System.out.format("****BUSCA MINAS****");
-        System.out.println("\n----MENU---- ");
-        System.out.println(" 1. 10x10 casillas");
-        Iniciar(); // Game initialization
+        System.out.println("¡Bienvenido al Buscaminas!");
+        Iniciar(); 
         imprimirCuadricula();
         Movimiento();
         int fila = Movimiento[0];
         int columna = Movimiento[1];
-        Minas(); // Place mines after the first move
+        Minas();
         minasAlrededor();
         while (!Victoria && !Derrota) {
-            if (Tablero[fila][columna] == 'X') { // Check if player stepped on a mine
+            if (Tablero[fila][columna] == 'X') { 
                 Derrota = true;
-                revealAllCells();
+                revelarCeldas();
                 imprimirCuadricula();
-                System.out.println("Game Over! You stepped on a mine.");
-                break; // Exit the loop
+                System.out.println("¡PERDISTE! Ha pisado una mina.");
+                break;
             } else {
                 revelarCeldas(fila, columna);
                 Restantes--;
                 imprimirCuadricula();
-                if (checkWin()) { // Check if player cleared all non-mine cells
+                if (comprobarVictoria()) {
                     Victoria = true;
-                    System.out.println("Congratulations! You cleared all the mines.");
-                    break; // Exit the loop
+                    System.out.println("¡Felicidades! Has limpiado todas las minas.");
+                    break;
                 }
                 Movimiento();
                 fila = Movimiento[0];
