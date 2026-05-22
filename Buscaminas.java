@@ -1,4 +1,12 @@
+import java.io.*;
+import java.util.InputMismatchException;
 import java.util.Scanner;
+
+class CasillaYaDescubiertaException extends Exception {
+    public CasillaYaDescubiertaException(String mensaje) {
+        super(mensaje);
+    }
+}
 
 public class Buscaminas {
 
@@ -11,6 +19,8 @@ public class Buscaminas {
     static boolean[][] Encontradas;
     static boolean Victoria, Derrota;
     static Scanner Leer = new Scanner(System.in);
+    
+    static boolean opcionArchivo = false;
 
     private static void Iniciar() {
         for (int i = 0; i < Filas; i++) {
@@ -34,7 +44,7 @@ public class Buscaminas {
         }
     }
 
-    private static void minasAlrededor() { 
+    private static void minasAlrededor() {
         for (int i = 0; i < Filas; i++) {
             for (int j = 0; j < Columnas; j++) {
                 if (Tablero[i][j] != 'X') {
@@ -116,7 +126,7 @@ public class Buscaminas {
         }
     }
 
-    private static void revelarCeldas() { 
+    private static void revelarCeldas() {
         for (int i = 0; i < Filas; i++) {
             for (int j = 0; j < Columnas; j++) {
                 Encontradas[i][j] = true;
@@ -136,38 +146,155 @@ public class Buscaminas {
     }
 
     private static void Movimiento() {
-        System.out.print("Ingrese la fila: (A-J) ");
-        char letraFila = Leer.next().toUpperCase().charAt(0);
+        opcionArchivo = false;
+        System.out.print("Ingrese la fila (A-J) o escriba 'Guardar'/'Cargar': ");
+        String entrada = Leer.next().toUpperCase();
+        
+        if (entrada.equals("Guardar")) {
+            guardarJuego("partida.txt");
+            opcionArchivo = true;
+            return;
+        }
+
+        // PERSISTENCIA DE DATOS: Cargar estado
+        if (entrada.equals("Cargar")) {
+            cargarJuego("partida.txt");
+            opcionArchivo = true; 
+            return;
+        }
+
+        char letraFila = entrada.charAt(0);
         Movimiento[0] = letraFila - 'A' + 1;
         System.out.print("Ingrese la columna: (1-10) ");
         Movimiento[1] = Leer.nextInt();
     }
+    
+    private static void guardarJuego(String nombreArchivo) {
+        try (PrintWriter escritor = new PrintWriter(new FileWriter(nombreArchivo))) {
+            escritor.println(Restantes);
+            for (int i = 0; i < Filas; i++) {
+                for (int j = 0; j < Columnas; j++) {
+                    escritor.print(Tablero[i][j]);
+                }
+                escritor.println();
+            }
+            for (int i = 0; i < Filas; i++) {
+                for (int j = 0; j < Columnas; j++) {
+                    escritor.print(Encontradas[i][j] ? "1" : "0");
+                }
+                escritor.println();
+            }
+            System.out.println("¡Juego guardado exitosamente en " + nombreArchivo + "!");
+        } catch (IOException e) {
+            System.out.println("Error al intentar guardar el archivo de la partida.");
+        }
+    }
+    private static void cargarJuego(String nombreArchivo) {
+        try (BufferedReader lector = new BufferedReader(new FileReader(nombreArchivo))) {
+            Restantes = Integer.parseInt(lector.readLine());
+            for (int i = 0; i < Filas; i++) {
+                String linea = lector.readLine();
+                for (int j = 0; j < Columnas; j++) {
+                    Tablero[i][j] = linea.charAt(j);
+                }
+            }
+            for (int i = 0; i < Filas; i++) {
+                String linea = lector.readLine();
+                for (int j = 0; j < Columnas; j++) {
+                    Encontradas[i][j] = linea.charAt(j) == '1';
+                }
+            }
+            System.out.println("¡Partida cargada exitosamente desde " + nombreArchivo + "!");
+        } catch (IOException | NullPointerException | NumberFormatException e) {
+            System.out.println("No se encontró una partida guardada válida o el archivo está corrupto.");
+        }
+    }
 
     public static void main(String[] args) {
         System.out.println("¡Bienvenido al Buscaminas!");
-        Iniciar(); 
+        Iniciar();
         imprimirCuadricula();
-        Movimiento();
+        boolean primerTiroValido = false;
+        while (!primerTiroValido) {
+            try {
+                Movimiento();
+                if (opcionArchivo) { // CORREGIDO
+                    imprimirCuadricula();
+                    continue;
+                }
+                if (!celdaValida(Movimiento[0], Movimiento[1]) || Movimiento[0] == 0 || Movimiento[1] == 0) {
+                    throw new ArrayIndexOutOfBoundsException();
+                }
+                primerTiroValido = true;
+            } catch (InputMismatchException e) {
+                System.out.println("[ERROR] La columna debe ser un número entero. Intenta de nuevo.");
+                Leer.nextLine(); // Limpiar el búfer
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("[ERROR] Posición fuera del rango permitido del tablero. Intenta de nuevo.");
+                Leer.nextLine();
+            }
+        }
+
         int fila = Movimiento[0];
         int columna = Movimiento[1];
-        Minas();
-        minasAlrededor();
+        
+        if (!opcionArchivo) { 
+            Minas();
+            minasAlrededor();
+        }
+
         while (!Victoria && !Derrota) {
-            if (Tablero[fila][columna] == 'X') { 
-                Derrota = true;
-                revelarCeldas();
-                imprimirCuadricula();
-                System.out.println("¡PERDISTE! Ha pisado una mina.");
-                break;
-            } else {
-                revelarCeldas(fila, columna);
-                Restantes--;
-                imprimirCuadricula();
-                if (comprobarVictoria()) {
-                    Victoria = true;
-                    System.out.println("¡Felicidades! Has limpiado todas las minas.");
-                    break;
+            try {
+                if (Encontradas[fila][columna]) {
+                    throw new CasillaYaDescubiertaException("[Esa casilla ya está descubierta. Elige otra.");
                 }
+
+                if (Tablero[fila][columna] == 'X') {
+                    Derrota = true;
+                    revelarCeldas();
+                    imprimirCuadricula();
+                    System.out.println("¡PERDISTE! Ha pisado una mina.");
+                    break;
+                } else {
+                    revelarCeldas(fila, columna);
+                    Restantes--;
+                    imprimirCuadricula();
+                    if (comprobarVictoria()) {
+                        Victoria = true;
+                        System.out.println("¡Felicidades! Has limpiado todas las minas.");
+                        break;
+                    }
+
+                    
+                    boolean siguienteMovimientoValido = false;
+                    while (!siguienteMovimientoValido) {
+                        try {
+                            Movimiento();
+                            if (opcionArchivo) { 
+                                imprimirCuadricula();
+                                fila = Movimiento[0];
+                                columna = Movimiento[1];
+                                continue;
+                            }
+                            if (!celdaValida(Movimiento[0], Movimiento[1]) || Movimiento[0] == 0 || Movimiento[1] == 0) {
+                                throw new ArrayIndexOutOfBoundsException();
+                            }
+                            siguienteMovimientoValido = true;
+                        } catch (InputMismatchException e) {
+                            System.out.println("[Error] La columna debe ser un número entero.");
+                            Leer.nextLine();
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            System.out.println("[Error] Posición inválida en el tablero.");
+                            Leer.nextLine();
+                        }
+                    }
+
+                    fila = Movimiento[0];
+                    columna = Movimiento[1];
+                }
+            } catch (CasillaYaDescubiertaException e) {
+                System.out.println(e.getMessage());
+                // Forzamos pedir el movimiento otra vez sin penalizar ni avanzar el ciclo
                 Movimiento();
                 fila = Movimiento[0];
                 columna = Movimiento[1];
