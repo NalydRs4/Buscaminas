@@ -16,7 +16,7 @@ public class GestorArchivos {
     public static boolean partidaCargadaDesdeArchivo = false;
     public static boolean usuarioQuisoSalir = false;
     // Ruta del archivo guardado de la partida
-    private static final String RUTA_ARCHIVO_BUSCAMINAS = "partida_guardada.txt";
+    private static final String RUTA_ARCHIVO_BUSCAMINAS = "Buscaminas/partida_guardada.txt";
 
     // Método para guardar la partida en un archivo con excepción personalizada
     public static void guardarPartida() throws ErrorAlGuardarPartida {
