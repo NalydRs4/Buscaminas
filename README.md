@@ -1,6 +1,6 @@
 <img width="429" height="117" alt="image" src="https://github.com/user-attachments/assets/f35b391c-fd5d-4689-a6ec-159d0c258367" />
 
-# EXAMEN PRÁCTICO : Buscaminas
+# EXAMEN PRÁCTICO : *Buscaminas*
 
 - Israel Vladimir Chamba Venegas
 - Dylan Ramiro Totoy Silva
@@ -13,7 +13,7 @@
 
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/b730cf42-96c9-4f48-a4b0-f3505231d33c" />
 
-**Caracteres**
+**Caracteres:**
 - X = Ubicación de una mina
 - V = Espacio vacío seleccionado
 
