@@ -16,3 +16,7 @@
 **Caracteres**
 - X = Ubicación de una mina
 - V = Espacio vacío seleccionado
+
+**Diagrama de clases:**
+
+<img width="1806" height="1070" alt="HERENCIA" src="https://github.com/user-attachments/assets/173b9505-2570-47e7-b607-1a799612f927" />
