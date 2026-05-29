@@ -20,3 +20,8 @@
 **Diagrama de clases:**
 
 <img width="1806" height="1070" alt="HERENCIA" src="https://github.com/user-attachments/assets/173b9505-2570-47e7-b607-1a799612f927" />
+
+**Estructura del proyecto:**
+
+<img width="300" height="552" alt="image" src="https://github.com/user-attachments/assets/181ff22d-a0e5-436f-b090-0cb0a29ede3d" />
+
